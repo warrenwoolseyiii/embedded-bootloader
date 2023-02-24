@@ -2,19 +2,32 @@
 #define OPTIBOOT_H
 
 #include <stdint.h>
+#include "user/user_settings.h"
 
 // Max allowable programe size
+#ifndef MAX_PROG_SIZE
 #define MAX_PROG_SIZE 0x40000
+#endif
 
 // Max cache size to save on RAM
+#ifndef MAX_CACHE_SIZE
 #define MAX_CACHE_SIZE 1024
+#endif
 
 // Program start address
+#ifndef APP_START_ADDR
 #define APP_START_ADDR 0x800
+#endif
 
 // Flash image offset
+#ifndef FLASH_IMAGE_OFFSET
 #define FLASH_IMAGE_OFFSET 12
+#endif
+
+// Flash image start
+#ifndef FLASH_IMAGE_START
 #define FLASH_IMAGE_START 0
+#endif
 
 // Optiboot error codes
 #define OPTIBOOT_OK 0

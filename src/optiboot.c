@@ -132,6 +132,14 @@ int main()
         jump();
     }
 
-    // TODO: Otherwise sit in the serial bootloader
+    // Run the serial bootloader if we haven't jumped to an application
+    if( user_serial_bootloader() == 0 ) {
+        jump();
+    }
+
+    // Otherwise soft reboot and try again
+    user_soft_reboot();
+
+    // Should never get here
     return 0;
 }

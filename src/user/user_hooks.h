@@ -89,4 +89,17 @@ void user_prep_for_application_jump( void );
  */
 int user_check_for_application( void );
 
+/**
+ * @brief user_soft_reboot the processor. This function should not return.
+ * 
+ */
+void user_soft_reboot( void );
+
+/**
+ * @brief user_serial_bootloader should run the serial bootloader (if present).
+ * 
+ * @return int - 0 if the serial bootloader was run and succeeded, -1 if not
+ */
+int user_serial_bootloader( void );
+
 #endif /* USER_HOOKS_H */

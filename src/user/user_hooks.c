@@ -62,3 +62,15 @@ void user_prep_for_application_jump( void )
 int user_check_for_application( void )
 {
 }
+
+// TODO: User must implement this function, see user_hooks.h for details.
+void user_soft_reboot( void )
+{
+
+}
+
+// TODO: User must implement this function, see user_hooks.h for details.
+int user_serial_bootloader( void )
+{
+    return -1;
+}

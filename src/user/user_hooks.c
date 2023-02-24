@@ -74,3 +74,8 @@ int user_serial_bootloader( void )
 {
     return -1;
 }
+
+// TODO: User must implement this function, see user_hooks.h for details.
+void _putchar( char character )
+{
+}

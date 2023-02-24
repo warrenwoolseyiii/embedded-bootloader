@@ -102,4 +102,11 @@ void user_soft_reboot( void );
  */
 int user_serial_bootloader( void );
 
+/**
+ * @brief _putchar optional _purchar function that will enable the printf library.
+ * 
+ * @param character - character to print
+ */
+void _putchar( char character );
+
 #endif /* USER_HOOKS_H */

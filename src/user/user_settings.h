@@ -23,20 +23,21 @@ GitHub: https://github.com/warrenwoolseyiii
 
 // User settings for the bootloader, use these to override any default settings in optiboot.h
 
-// Max allowable programe size
-#define MAX_PROG_SIZE 0x40000
-
 // Max cache size to save on RAM
 #define MAX_CACHE_SIZE 1024
 
-// Program start address
-#define APP_START_ADDR 0x800
+// Program start address - make sure to adjust this in the rom - LENGTH definition in samd20e18_flash.ld file.
+#if defined( SERIAL_DEBUG_EN )
+#define APP_START_ADDR 0x00006000
+#else
+#define APP_START_ADDR 0x00002000
+#endif
+
+// Max allowable program size
+#define MAX_PROG_SIZE ( 0x40000 - APP_START_ADDR )
 
 // Flash image offset
 #define FLASH_IMAGE_OFFSET 12
 #define FLASH_IMAGE_START 0
-
-// Enable or disable serial debugging
-//#define SERIAL_DEBUG_EN
 
 #endif /* USER_SETTINGS_H */

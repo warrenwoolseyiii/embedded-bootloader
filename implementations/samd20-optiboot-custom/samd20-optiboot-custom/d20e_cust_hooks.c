@@ -103,6 +103,10 @@ void user_delay_us( uint32_t duration )
 // TODO: User must implement this function, see user_hooks.h for details.
 void user_prep_for_application_jump( void )
 {
+    // Reset the stack pointer to the application starting address, then inform
+    // the interrupt vector table that it has a new location
+    __set_MSP( *(uint32_t *)APP_START_ADDR );
+    SCB->VTOR = ( (uint32_t)APP_START_ADDR & SCB_VTOR_TBLOFF_Msk );
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
@@ -117,6 +121,7 @@ int user_check_for_application( void )
 // TODO: User must implement this function, see user_hooks.h for details.
 void user_soft_reboot( void )
 {
+    __NVIC_SystemReset();
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
@@ -125,8 +130,30 @@ int user_serial_bootloader( void )
     return -1;
 }
 
-// TODO: User must implement this function, see user_hooks.h for details.
+/**
+ * Output a character to a custom device like UART, used by the printf()
+ * function This function is declared here only. You have to write your custom
+ * implementation somewhere \param character Character to output
+ */
 void _putchar( char character )
 {
     io_write( uart_io, (uint8_t *)&character, 1 );
+}
+
+/**
+ * Block interrupts on your device. This function is declared here only. You
+ * have to write your custom implementation somewhere.
+ */
+void _block_interrupts()
+{
+    __disable_irq();
+}
+
+/**
+ * Block unblock interrupts on your device. This function is declared here only.
+ * You have to write your custom implementation somewhere.
+ */
+void _unblock_interrupts()
+{
+    __enable_irq();
 }

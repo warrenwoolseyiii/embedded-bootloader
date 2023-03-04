@@ -129,4 +129,17 @@ int user_serial_bootloader( void );
  */
 void _putchar( char character );
 
+
+/**
+ *  @brief block interrupts on your device. This function is declared here only. You
+ * have to write your custom implementation somewhere.
+ */
+void _block_interrupts();
+
+/**
+ * @brief unblock interrupts on your device. This function is declared here only.
+ * You have to write your custom implementation somewhere.
+ */
+void _unblock_interrupts();
+
 #endif /* USER_HOOKS_H */

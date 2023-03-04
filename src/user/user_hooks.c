@@ -99,3 +99,11 @@ int user_serial_bootloader( void )
 void _putchar( char character )
 {
 }
+
+// TODO: User must implement this function, see user_hooks.h for details.
+void _block_interrupts()
+{}
+
+// TODO: User must implement this function, see user_hooks.h for details.
+void _unblock_interrupts()
+{}

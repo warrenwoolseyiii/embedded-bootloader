@@ -451,12 +451,14 @@ TEST_F( bootloader_tests, simulated_optiboot_write )
     uint32_t flash_addr = FLASH_IMAGE_START;
     for( ; flash_addr < file_len; flash_addr += 4096 ) {
         ASSERT_EQ( emb_ext_flash_erase( &_intf, flash_addr, 4096 ), 0 );
-        printf( "Erased 0x%08X\n", flash_addr );
     }
 
     flash_addr = FLASH_IMAGE_START + FLASH_IMAGE_OFFSET;
     uint8_t copy_buffer[8192];
-    int copy_buffer_index = 0;
+    int     copy_buffer_index = 0;
+
+    // Assert that the file is not longer than the copy buffer
+    ASSERT_LT( file_len / 2, sizeof( copy_buffer ) );
 
     // Print the file contents line by line
     while( contents.length() > 0 ) {
@@ -464,14 +466,13 @@ TEST_F( bootloader_tests, simulated_optiboot_write )
         std::string line = contents.substr( 0, contents.find_first_of( "\r" ) );
         const char *line_cstr = line.c_str();
 
-        // Print the line
-        printf( "%s\n", line_cstr );
-
-        // Parse a record and store the data in a the copy buffer
+        // Parse a record and store the data in a the copy buffer - we only store the data records in flash so do the same here.
         intel_hex_record_t record;
         if( parse_string_hex_record( line_cstr, &record ) == HEX_RECORD_WRITER_ERROR_NONE ) {
-            for( int i = 0; i < record.record_length; i++ ) {
-                copy_buffer[copy_buffer_index++] = record.data[i];
+            if( record.record_type == HEX_RECORD_WRITER_RECORD_TYPE_DATA ) {
+                for( int i = 0; i < record.record_length; i++ ) {
+                    copy_buffer[copy_buffer_index++] = record.data[i];
+                }
             }
         }
 
@@ -481,6 +482,16 @@ TEST_F( bootloader_tests, simulated_optiboot_write )
         // Remove the line from the file contents
         contents.erase( 0, line.length() + 2 );
     }
+
+    // Now go back and write the header
+    flash_addr = FLASH_IMAGE_START;
+    char header[12] = { 'F', 'L', 'X', 'I', 'M', 'G', ':', (char)( copy_buffer_index >> 24 ), (char)( copy_buffer_index >> 16 ), (char)( copy_buffer_index >> 8 ), (char)( copy_buffer_index >> 0 ), ':' };
+    ASSERT_EQ( emb_ext_flash_write( &_intf, flash_addr, (uint8_t *)header, sizeof( header ) ), sizeof( header ) );
+
+    // Read back the header and verify that it is correct
+    uint8_t read_header[12];
+    emb_ext_flash_read( &_intf, flash_addr, read_header, sizeof( read_header ) );
+    ASSERT_EQ( memcmp( (uint8_t *)header, read_header, sizeof( header ) ), 0 );
 
     // Read back the contents of flash and compar eto the copy buffer
     uint8_t read_buffer[8192];

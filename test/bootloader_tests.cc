@@ -438,7 +438,7 @@ TEST_F( bootloader_tests, parse_string_record_bad_record_len )
     ASSERT_EQ( parse_string_hex_record( ":10000001FB", &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH );
 }
 
-TEST_F( bootloader_tests, simulated_optiboot_write )
+TEST_F( bootloader_tests, simulated_optiboot_string_write )
 {
     // Open the file
     std::ifstream file( "example_app_0x6000.hex" );
@@ -576,4 +576,75 @@ TEST_F( bootloader_tests, parse_byte_record_bad_record_len )
     // Parse a byte stream with a bad address into a hex record and verify that we get an error
     intel_hex_record_t record;
     ASSERT_EQ( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH );
+}
+
+TEST_F( bootloader_tests, simulated_optiboot_byte_write )
+{
+    // Open the file
+    std::ifstream file( "example_app_0x6000.hex" );
+
+    // Read the file contents into a string
+    std::string contents( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
+
+    // Get the length of the file, get the flash ready to write
+    uint32_t file_len = contents.length();
+    uint32_t flash_addr = FLASH_IMAGE_START;
+    for( ; flash_addr < file_len; flash_addr += 4096 ) {
+        ASSERT_EQ( emb_ext_flash_erase( &_intf, flash_addr, 4096 ), 0 );
+    }
+
+    flash_addr = FLASH_IMAGE_START + FLASH_IMAGE_OFFSET;
+    uint8_t copy_buffer[8192];
+    int     copy_buffer_index = 0;
+
+    // Assert that the file is not longer than the copy buffer
+    ASSERT_LT( file_len / 2, sizeof( copy_buffer ) );
+
+    // Print the file contents line by line
+    while( contents.length() > 0 ) {
+        // Read a single line from the file, convert it into a char *
+        std::string line = contents.substr( 0, contents.find_first_of( "\r" ) );
+        const char *line_cstr = line.c_str();
+
+        // Create a byte array the length of the line / 2
+        uint8_t byte_array[line.length() / 2 + 1];
+
+        byte_array[0] = line_cstr[0];
+
+        // Convert the string into a byte array one byte at a time
+        for( int i = 0; i < line.length() / 2; i++ ) {
+            byte_array[i + 1] = hex_to_byte( (char *)&line_cstr[1 + i * 2] );
+        }
+
+        // Parse a record and store the data in a the copy buffer - we only store the data records in flash so do the same here.
+        intel_hex_record_t record;
+        if( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ) == HEX_RECORD_WRITER_ERROR_NONE ) {
+            if( record.record_type == HEX_RECORD_WRITER_RECORD_TYPE_DATA ) {
+                for( int i = 0; i < record.record_length; i++ ) {
+                    copy_buffer[copy_buffer_index++] = record.data[i];
+                }
+            }
+        }
+
+        // Write the line to the flash
+        flash_addr += write_hex_record_to_flash( &_intf, flash_addr, byte_array, sizeof( byte_array ), false );
+
+        // Remove the line from the file contents
+        contents.erase( 0, line.length() + 2 );
+    }
+
+    // Now go back and write the header
+    flash_addr = FLASH_IMAGE_START;
+    char header[12] = { 'F', 'L', 'X', 'I', 'M', 'G', ':', (char)( copy_buffer_index >> 24 ), (char)( copy_buffer_index >> 16 ), (char)( copy_buffer_index >> 8 ), (char)( copy_buffer_index >> 0 ), ':' };
+    ASSERT_EQ( emb_ext_flash_write( &_intf, flash_addr, (uint8_t *)header, sizeof( header ) ), sizeof( header ) );
+
+    // Read back the header and verify that it is correct
+    uint8_t read_header[12];
+    emb_ext_flash_read( &_intf, flash_addr, read_header, sizeof( read_header ) );
+    ASSERT_EQ( memcmp( (uint8_t *)header, read_header, sizeof( header ) ), 0 );
+
+    // Read back the contents of flash and compar eto the copy buffer
+    uint8_t read_buffer[8192];
+    emb_ext_flash_read( &_intf, FLASH_IMAGE_START + FLASH_IMAGE_OFFSET, read_buffer, 8192 );
+    ASSERT_EQ( memcmp( copy_buffer, read_buffer, copy_buffer_index ), 0 );
 }

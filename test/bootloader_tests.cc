@@ -23,6 +23,7 @@ GitHub: https://github.com/warrenwoolseyiii
 #include <hex_record_writer.h>
 #include <optiboot.h>
 #include <bl_version.h>
+#include <fstream>
 
 // Flash simulation JEDEC ID
 #define FLASH_SIM_JEDEC_ID 0x1F4401
@@ -371,6 +372,118 @@ class bootloader_tests : public ::testing::Test
 
 TEST_F( bootloader_tests, print_version )
 {
-    printf( "bootloader_tests version: %s\n", emb_ext_flash_get_lib_ver() );
-    ASSERT_TRUE( 1 );
+    // Get the external flash dep version
+    const char *version = emb_ext_flash_get_lib_ver();
+    // Print the version
+    printf( "Embedded bootloader version: %d.%d.%d\n", BL_VERSION_MAJOR, BL_VERSION_MINOR, BL_VERSION_REV );
+    printf( "Embedded external flash dep version: %s\n", version );
+}
+
+TEST_F( bootloader_tests, parse_string_record )
+{
+    // Open the file
+    std::ifstream file( "example_app_0x6000.hex" );
+
+    // Read the file contents into a string
+    std::string contents( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
+
+    // Read a single line from the file, convert it into a char *
+    std::string line = contents.substr( 0, contents.find_first_of( "\r" ) );
+    const char *line_cstr = line.c_str();
+
+    // Parse the string into a hex record and verify that we parsed it properly
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_string_hex_record( line_cstr, &record ), HEX_RECORD_WRITER_ERROR_NONE );
+}
+
+TEST_F( bootloader_tests, parse_string_record_null )
+{
+    // Parse a null string into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_string_hex_record( NULL, &record ), HEX_RECORD_WRITER_ERROR_NULL_PTR );
+}
+
+TEST_F( bootloader_tests, parse_string_record_bad_length )
+{
+    // Parse a string with a bad length into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_string_hex_record( ":00000001F", &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH );
+}
+
+TEST_F( bootloader_tests, parse_string_record_bad_checksum )
+{
+    // Parse a string with a bad checksum into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_string_hex_record( ":00000001FB", &record ), HEX_RECORD_WRITER_ERROR_INVALID_CHECKSUM );
+}
+
+TEST_F( bootloader_tests, parse_string_record_bad_start )
+{
+    // Parse a string with a bad start into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_string_hex_record( "000000001FB", &record ), HEX_RECORD_WRITER_ERROR_INVALID_FORMAT );
+}
+
+TEST_F( bootloader_tests, parse_string_record_bad_type )
+{
+    // Parse a string with a bad type into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_string_hex_record( ":00000006FB", &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_TYPE );
+}
+
+TEST_F( bootloader_tests, parse_string_record_bad_record_len )
+{
+    // Parse a string with a bad address into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_string_hex_record( ":10000001FB", &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH );
+}
+
+TEST_F( bootloader_tests, simulated_optiboot_write )
+{
+    // Open the file
+    std::ifstream file( "example_app_0x6000.hex" );
+
+    // Read the file contents into a string
+    std::string contents( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
+
+    // Get the length of the file, get the flash ready to write
+    uint32_t file_len = contents.length();
+    uint32_t flash_addr = FLASH_IMAGE_START;
+    for( ; flash_addr < file_len; flash_addr += 4096 ) {
+        ASSERT_EQ( emb_ext_flash_erase( &_intf, flash_addr, 4096 ), 0 );
+        printf( "Erased 0x%08X\n", flash_addr );
+    }
+
+    flash_addr = FLASH_IMAGE_START + FLASH_IMAGE_OFFSET;
+    uint8_t copy_buffer[8192];
+    int copy_buffer_index = 0;
+
+    // Print the file contents line by line
+    while( contents.length() > 0 ) {
+        // Read a single line from the file, convert it into a char *
+        std::string line = contents.substr( 0, contents.find_first_of( "\r" ) );
+        const char *line_cstr = line.c_str();
+
+        // Print the line
+        printf( "%s\n", line_cstr );
+
+        // Parse a record and store the data in a the copy buffer
+        intel_hex_record_t record;
+        if( parse_string_hex_record( line_cstr, &record ) == HEX_RECORD_WRITER_ERROR_NONE ) {
+            for( int i = 0; i < record.record_length; i++ ) {
+                copy_buffer[copy_buffer_index++] = record.data[i];
+            }
+        }
+
+        // Write the line to the flash
+        flash_addr += write_hex_record_to_flash( &_intf, flash_addr, (uint8_t *)line_cstr, true );
+
+        // Remove the line from the file contents
+        contents.erase( 0, line.length() + 2 );
+    }
+
+    // Read back the contents of flash and compar eto the copy buffer
+    uint8_t read_buffer[8192];
+    emb_ext_flash_read( &_intf, FLASH_IMAGE_START + FLASH_IMAGE_OFFSET, read_buffer, 8192 );
+    ASSERT_EQ( memcmp( copy_buffer, read_buffer, copy_buffer_index ), 0 );
 }

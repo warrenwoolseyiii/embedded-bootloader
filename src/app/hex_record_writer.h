@@ -1,9 +1,14 @@
 #ifndef HEX_RECORD_WRITER_H
 #define HEX_RECORD_WRITER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdbool.h>
 #include <emb_ext_flash.h>
+#include <user_settings.h>
 
 #define HEX_RECORD_WRITER_ERROR_NONE 0
 #define HEX_RECORD_WRITER_ERROR_INVALID_RECORD_TYPE -1
@@ -47,11 +52,14 @@ int parse_byte_stream_hex_record( const uint8_t *stream, intel_hex_record_t *rec
 
 /**
  * @brief Calculate the checksum of an Intel HEX record
+ * @param len Length of the record
+ * @param addr Address of the record
+ * @param type Type of the record
  * @param data Pointer to the data of the Intel HEX record
  * @param length Length of the data
  * @return Checksum
  */
-uint8_t calculate_checksum( uint8_t *data, uint8_t length );
+uint8_t calculate_checksum( uint8_t len, uint16_t addr, uint8_t type, uint8_t *data, uint8_t length );
 
 /**
  * @brief Write an Intel HEX record to flash
@@ -63,5 +71,9 @@ uint8_t calculate_checksum( uint8_t *data, uint8_t length );
  * @return int, number of bytes written to flash memory
  */
 int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_addr, uint8_t *byte_stream, bool is_string );
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HEX_RECORD_WRITER_H */

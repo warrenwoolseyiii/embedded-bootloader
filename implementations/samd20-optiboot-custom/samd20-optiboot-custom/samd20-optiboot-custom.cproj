@@ -367,11 +367,6 @@
       <Value>%24(PackRepoDir)\atmel\SAMD20_DFP\1.3.165\samd20\include</Value>
     </ListValues>
   </armgcc.preprocessingassembler.general.IncludePaths>
-  <armgcc.preprocessingassembler.symbols.DefSymbols>
-    <ListValues>
-      <Value>SERIAL_DEBUG_EN</Value>
-    </ListValues>
-  </armgcc.preprocessingassembler.symbols.DefSymbols>
   <armgcc.preprocessingassembler.debugging.DebugLevel>Default (-Wa,-g)</armgcc.preprocessingassembler.debugging.DebugLevel>
 </ArmGcc>
     </ToolchainSettings>

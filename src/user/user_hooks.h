@@ -21,6 +21,10 @@ GitHub: https://github.com/warrenwoolseyiii
 #ifndef USER_HOOKS_H
 #define USER_HOOKS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 
 /**
@@ -141,5 +145,9 @@ void _block_interrupts();
  * You have to write your custom implementation somewhere.
  */
 void _unblock_interrupts();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* USER_HOOKS_H */

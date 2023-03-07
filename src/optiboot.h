@@ -21,6 +21,10 @@ GitHub: https://github.com/warrenwoolseyiii
 #ifndef OPTIBOOT_H
 #define OPTIBOOT_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "user/user_settings.h"
 #include <stdint.h>
 
@@ -36,7 +40,12 @@ GitHub: https://github.com/warrenwoolseyiii
 
 // Program start address
 #ifndef APP_START_ADDR
-#define APP_START_ADDR 0x800
+#define APP_START_ADDR 0x8000
+#endif
+
+// Boot loader start address
+#ifndef BL_START_ADDR
+#define BL_START_ADDR 0
 #endif
 
 // Flash image offset
@@ -60,6 +69,14 @@ GitHub: https://github.com/warrenwoolseyiii
 #define OPTIBOOT_ERR_FLASH_ERASE_FAIL -7
 #define OPTIBOOT_ERR_FLASH_INIT_FAIL -8
 
+// Symbols for the linker
+extern uint32_t __bootloader__;
+extern uint32_t __application__;
+
 int optiboot();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* OPTIBOOT_H */

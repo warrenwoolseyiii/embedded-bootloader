@@ -21,6 +21,12 @@ GitHub: https://github.com/warrenwoolseyiii
 #ifndef USER_SETTINGS_H
 #define USER_SETTINGS_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <stdint.h>
+
 // User settings for the bootloader, use these to override any default settings in optiboot.h
 
 // Max cache size to save on RAM
@@ -33,11 +39,21 @@ GitHub: https://github.com/warrenwoolseyiii
 #define APP_START_ADDR 0x00002000
 #endif
 
+#if defined( TEST_APPLICATION )
+#define BL_START_ADDR APP_START_ADDR
+#else
+#define BL_START_ADDR 0x00000000
+#endif /* TEST_APPLICATION */
+
 // Max allowable program size
 #define MAX_PROG_SIZE ( 0x40000 - APP_START_ADDR )
 
 // Flash image offset
 #define FLASH_IMAGE_OFFSET 12
 #define FLASH_IMAGE_START 0
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* USER_SETTINGS_H */

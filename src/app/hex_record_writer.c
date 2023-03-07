@@ -47,6 +47,8 @@ int parse_string_hex_record( const char *str, intel_hex_record_t *record )
 
     // Check the record type
     record->record_type = hex_to_byte( (char *)&str[7] );
+    if( record->record_type > HEX_RECORD_WRITER_RECORD_TYPE_START_LINEAR_ADDRESS )
+        return HEX_RECORD_WRITER_ERROR_INVALID_RECORD_TYPE;
 
     // Get the checksum
     record->checksum = hex_to_byte( (char *)&str[strlen( str ) - 2] );
@@ -56,7 +58,8 @@ int parse_string_hex_record( const char *str, intel_hex_record_t *record )
         record->data[i] = hex_to_byte( (char *)&str[9 + i * 2] );
 
     // Check the checksum
-    uint8_t checksum = calculate_checksum( record->data, record->record_length );
+    uint8_t checksum = calculate_checksum( record->record_length, record->address,
+                                           record->record_type, record->data, record->record_length );
     if( checksum != record->checksum )
         return HEX_RECORD_WRITER_ERROR_INVALID_CHECKSUM;
 
@@ -92,14 +95,15 @@ int parse_byte_stream_hex_record( const uint8_t *stream, intel_hex_record_t *rec
         record->data[i] = stream[5 + i];
 
     // Check the checksum
-    uint8_t checksum = calculate_checksum( record->data, record->record_length );
+    uint8_t checksum = calculate_checksum( record->record_length, record->address,
+                                           record->record_type, record->data, record->record_length );
     if( checksum != record->checksum )
         return HEX_RECORD_WRITER_ERROR_INVALID_CHECKSUM;
 
     return HEX_RECORD_WRITER_ERROR_NONE;
 }
 
-uint8_t calculate_checksum( uint8_t *data, uint8_t length )
+uint8_t calculate_checksum( uint8_t len, uint16_t addr, uint8_t type, uint8_t *data, uint8_t length )
 {
     /*
         A record's checksum byte is the two's complement of the least significant byte (LSB)
@@ -110,7 +114,7 @@ uint8_t calculate_checksum( uint8_t *data, uint8_t length )
         is 03 + 00 + 30 + 00 + 02 + 33 + 7A = E2, which has LSB value E2. The two's complement of E2
         is 1E, which is the checksum byte appearing at the end of the record.
     */
-    uint8_t checksum = 0;
+    uint8_t checksum = len + type + ( addr >> 8 ) + ( addr & 0xFF );
     uint8_t i = 0;
 
     for( i = 0; i < length; i++ )
@@ -136,7 +140,7 @@ int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_add
     // Check the record type
     if( record.record_type == HEX_RECORD_WRITER_RECORD_TYPE_DATA ) {
         // Write the data to flash
-        if( emb_ext_flash_write(intf, flash_addr, record.data, (uint32_t)record.record_length ) != record.record_length )
+        if( emb_ext_flash_write( intf, flash_addr, record.data, (uint32_t)record.record_length ) != record.record_length )
             return 0;
     }
 

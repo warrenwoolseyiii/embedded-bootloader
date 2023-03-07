@@ -20,12 +20,30 @@ GitHub: https://github.com/warrenwoolseyiii
 
 #include "optiboot.h"
 #include <atmel_start.h>
+#include <atmel_start_pins.h>
 
 extern void user_atmel_start_init();
+
+#if defined( TEST_APPLICATION )
+void blinky()
+{
+    uint8_t level = 0;
+    while( 1 ) {
+        gpio_set_pin_level( LED_GREEN, level );
+        gpio_set_pin_level( LED_RED, level );
+        delay_ms( 500 );
+        level ^= 0x01;
+    }
+}
+#endif /* TEST_APPLICATION */
 
 int main( void )
 {
     atmel_start_init();
     user_atmel_start_init();
+#if defined( TEST_APPLICATION )
+    blinky();
+#else
     optiboot();
+#endif /* TEST_APPLICATION */
 }

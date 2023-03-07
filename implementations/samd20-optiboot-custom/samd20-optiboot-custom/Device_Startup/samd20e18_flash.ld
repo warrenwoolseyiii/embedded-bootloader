@@ -27,15 +27,20 @@
  *
  */
 
-
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 SEARCH_DIR(.)
 
+/* Super annoying that we can't adjust these based on linker time definitions - if you need to move the start 
+ * address of your application and the bootloader they must be manually adjusted here.
+ */
+PROG_START = DEFINED(PROG_START) ? PROG_START : DEFINED(__prog_start__) ? __prog_start__ : 0x00000000;
+PROG_LEN = DEFINED(PROG_LEN) ? PROG_LEN : DEFINED(__prog_len__) ? __prog_len__ : 0x6000;
+
 /* Memory Spaces Definitions - you have to manually adjust the LENGTH of the ROM */
 MEMORY
 {
-  rom      (rx)  : ORIGIN = 0x00000000, LENGTH = 0x6000
+  rom      (rx)  : ORIGIN = PROG_START, LENGTH = PROG_LEN
   ram      (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00008000
 }
 

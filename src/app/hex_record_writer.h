@@ -35,6 +35,13 @@ typedef struct
 } intel_hex_record_t;
 
 /**
+ * @brief Convert a hex character to a byte
+ * @param str String containing the hex character
+ * @return Byte value of the hex character
+ */
+uint8_t hex_to_byte( char *str );
+
+/**
  * @brief Parse a string containing an Intel HEX record
  * @param str String containing the Intel HEX record
  * @param record Pointer to a structure to store the parsed record
@@ -45,10 +52,11 @@ int parse_string_hex_record( const char *str, intel_hex_record_t *record );
 /**
  * @brief Parse a byte stream containing an Intel HEX record
  * @param stream Byte stream containing the Intel HEX record
+ * @param stream_len Length of the byte stream
  * @param record Pointer to a structure to store the parsed record
  * @return 0 on success, negative error code on failure
  */
-int parse_byte_stream_hex_record( const uint8_t *stream, intel_hex_record_t *record );
+int parse_byte_stream_hex_record( const uint8_t *stream, int stream_len, intel_hex_record_t *record );
 
 /**
  * @brief Calculate the checksum of an Intel HEX record
@@ -67,10 +75,11 @@ uint8_t calculate_checksum( uint8_t len, uint16_t addr, uint8_t type, uint8_t *d
  * @param intf pointer to the flash interface handle
  * @param flash_addr flash address to write to
  * @param byte_stream the byte stream to write
+ * @param byte_stream_len length of the byte stream
  * @param is_string boolean indicating if the byte stream is a string or a byte stream
  * @return int, number of bytes written to flash memory
  */
-int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_addr, uint8_t *byte_stream, bool is_string );
+int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_addr, uint8_t *byte_stream, int byte_stream_len, bool is_string );
 
 #ifdef __cplusplus
 }

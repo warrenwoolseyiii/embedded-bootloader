@@ -477,7 +477,7 @@ TEST_F( bootloader_tests, simulated_optiboot_write )
         }
 
         // Write the line to the flash
-        flash_addr += write_hex_record_to_flash( &_intf, flash_addr, (uint8_t *)line_cstr, true );
+        flash_addr += write_hex_record_to_flash( &_intf, flash_addr, (uint8_t *)line_cstr, sizeof( line_cstr ), true );
 
         // Remove the line from the file contents
         contents.erase( 0, line.length() + 2 );
@@ -497,4 +497,83 @@ TEST_F( bootloader_tests, simulated_optiboot_write )
     uint8_t read_buffer[8192];
     emb_ext_flash_read( &_intf, FLASH_IMAGE_START + FLASH_IMAGE_OFFSET, read_buffer, 8192 );
     ASSERT_EQ( memcmp( copy_buffer, read_buffer, copy_buffer_index ), 0 );
+}
+
+TEST_F( bootloader_tests, parse_byte_record )
+{
+    // Open the file
+    std::ifstream file( "example_app_0x6000.hex" );
+
+    // Read the file contents into a string
+    std::string contents( ( std::istreambuf_iterator<char>( file ) ), std::istreambuf_iterator<char>() );
+
+    // Read a single line from the file, convert it into a char *
+    std::string line = contents.substr( 0, contents.find_first_of( "\r" ) );
+    const char *line_cstr = line.c_str();
+
+    // Create a byte array the length of the line / 2
+    uint8_t byte_array[line.length() / 2 + 1];
+
+    byte_array[0] = line_cstr[0];
+
+    // Convert the string into a byte array one byte at a time
+    for( int i = 0; i < line.length() / 2; i++ ) {
+        byte_array[i + 1] = hex_to_byte( (char *)&line_cstr[1 + i * 2] );
+    }
+
+    // Parse the byte array into a hex record
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ), HEX_RECORD_WRITER_ERROR_NONE );
+}
+
+TEST_F( bootloader_tests, parse_byte_record_null )
+{
+    // Parse a null byte stream into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_byte_stream_hex_record( NULL, 0, &record ), HEX_RECORD_WRITER_ERROR_NULL_PTR );
+}
+
+TEST_F( bootloader_tests, parse_byte_record_bad_length )
+{
+    uint8_t byte_array[] = { ':', 0, 0, 0x1F };
+
+    // Parse a byte stream with a bad length into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH );
+}
+
+TEST_F( bootloader_tests, parse_byte_record_bad_checksum )
+{
+    uint8_t byte_array[] = { ':', 0x00, 0x00, 0x00, 0x01, 0xFB };
+
+    // Parse a byte stream with a bad checksum into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ), HEX_RECORD_WRITER_ERROR_INVALID_CHECKSUM );
+}
+
+TEST_F( bootloader_tests, parse_byte_record_bad_start )
+{
+    uint8_t byte_array[] = { 0x00, 0x00, 0x00, 0x01, 0xFB, 0x00 };
+
+    // Parse a byte stream with a bad start into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ), HEX_RECORD_WRITER_ERROR_INVALID_FORMAT );
+}
+
+TEST_F( bootloader_tests, parse_byte_record_bad_type )
+{
+    uint8_t byte_array[] = { ':', 0x00, 0x00, 0x00, 0x06, 0xFB };
+
+    // Parse a byte stream with a bad type into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_TYPE );
+}
+
+TEST_F( bootloader_tests, parse_byte_record_bad_record_len )
+{
+    uint8_t byte_array[] = { ':', 0x10, 0x00, 0x00, 0x01, 0xFB };
+
+    // Parse a byte stream with a bad address into a hex record and verify that we get an error
+    intel_hex_record_t record;
+    ASSERT_EQ( parse_byte_stream_hex_record( byte_array, sizeof( byte_array ), &record ), HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH );
 }

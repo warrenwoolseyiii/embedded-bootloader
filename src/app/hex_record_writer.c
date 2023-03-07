@@ -66,7 +66,7 @@ int parse_string_hex_record( const char *str, intel_hex_record_t *record )
     return HEX_RECORD_WRITER_ERROR_NONE;
 }
 
-int parse_byte_stream_hex_record( const uint8_t *stream, intel_hex_record_t *record )
+int parse_byte_stream_hex_record( const uint8_t *stream, int stream_len, intel_hex_record_t *record )
 {
     // Null check on the stream and record
     if( stream == NULL || record == NULL )
@@ -78,6 +78,8 @@ int parse_byte_stream_hex_record( const uint8_t *stream, intel_hex_record_t *rec
 
     // Check record length
     record->record_length = stream[1];
+    if( record->record_length != ( stream_len - 6 ) )
+        return HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH;
 
     // Check the address
     record->address = stream[2];
@@ -86,6 +88,8 @@ int parse_byte_stream_hex_record( const uint8_t *stream, intel_hex_record_t *rec
 
     // Check the record type
     record->record_type = stream[4];
+    if( record->record_type > HEX_RECORD_WRITER_RECORD_TYPE_START_LINEAR_ADDRESS )
+        return HEX_RECORD_WRITER_ERROR_INVALID_RECORD_TYPE;
 
     // Get the checksum
     record->checksum = stream[5 + record->record_length];
@@ -124,7 +128,7 @@ uint8_t calculate_checksum( uint8_t len, uint16_t addr, uint8_t type, uint8_t *d
     return checksum;
 }
 
-int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_addr, uint8_t *byte_stream, bool is_string )
+int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_addr, uint8_t *byte_stream, int byte_stream_len, bool is_string )
 {
     // Parse a record from the byte stream
     intel_hex_record_t record;
@@ -133,7 +137,7 @@ int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_add
             return 0;
     }
     else {
-        if( parse_byte_stream_hex_record( byte_stream, &record ) != HEX_RECORD_WRITER_ERROR_NONE )
+        if( parse_byte_stream_hex_record( byte_stream, byte_stream_len, &record ) != HEX_RECORD_WRITER_ERROR_NONE )
             return 0;
     }
 

@@ -31,6 +31,7 @@ GitHub: https://github.com/warrenwoolseyiii
 
 void jump()
 {
+#ifndef UNIT_TEST
     // Pointer to the application space in memory
     void ( *application_code_entry )( void );
 
@@ -40,6 +41,7 @@ void jump()
     // Set the application entry pointer to the address, then jump!
     application_code_entry = ( void ( * )( void ) )(unsigned *)( *(unsigned *)( APP_START_ADDR + 4 ) );
     application_code_entry();
+#endif /* UNIT_TEST */
 }
 
 // External flash interface struct
@@ -73,7 +75,7 @@ int check_optiboot_image()
      ~~~~~~ */
 
     // Read the flex image header
-    uint8_t flex_image_header[12] = {0};
+    uint8_t flex_image_header[12] = { 0 };
     if( emb_ext_flash_read( &_ext_flash_intf, FLASH_IMAGE_START, flex_image_header, 12 ) != 12 )
         return OPTIBOOT_ERR_FLASH_READ_FAIL;
 
@@ -156,6 +158,8 @@ int check_optiboot_image()
             return OPTIBOOT_ERR_FLASH_ERASE_FAIL;
     }
 
+    printf( "optiboot image copied to internal flash, total size %d bytes.\n", imagesize );
+
     // Return OK
     return OPTIBOOT_OK;
 }
@@ -176,6 +180,7 @@ int optiboot()
         else {
             printf( "External flash image is valid, jumping to program.\n" );
             jump();
+            return 0;
         }
     }
 
@@ -186,16 +191,18 @@ int optiboot()
     else {
         printf( "Application is valid, jumping to program.\n" );
         jump();
+        return 0;
     }
 
     // Run the serial bootloader if we haven't jumped to an application
     if( user_serial_bootloader() == 0 ) {
         jump();
+        return 0;
     }
 
     // Otherwise soft reboot and try again
     user_soft_reboot();
 
     // Should never get here
-    return 0;
+    return -1;
 }

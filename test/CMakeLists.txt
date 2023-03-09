@@ -21,18 +21,20 @@ include_directories("../src"
                     "../src/deps/embedded-external-flash-memory"
                     "../src/app")
 
-add_compile_definitions(UNIT_TEST_FRAMEWORK)
+add_compile_definitions(UNIT_TEST_FRAMEWORK
+                        SERIAL_DEBUG_EN
+                        UNIT_TEST)
 
 file(GLOB sources
   "../src/*.h"
   "../src/*.c"
   "../src/user/*.h"
-  "../src/user/*.c"
   "../src/deps/embedded-external-flash-memory/*.h"
   "../src/deps/embedded-external-flash-memory/*.c"
   "../src/app/*.h"
   "../src/app/*.c"
-  "*.c")
+  "*.c"
+  "*.h")
 
 add_executable(
   bootloader_tests

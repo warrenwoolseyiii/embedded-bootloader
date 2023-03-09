@@ -1,5 +1,29 @@
+
+/*********************************************************************************
+DISCLAIMER:
+
+This code is protected under the MIT open source license. The code is provided
+"as is" without warranty of any kind, either express or implied, including but
+not limited to the implied warranties of merchantability, fitness for a particular
+purpose, or non-infringement. In no event shall the author or any other party be
+liable for any direct, indirect, incidental, special, exemplary, or consequential
+damages, however caused and on any theory of liability, whether in contract,
+strict liability, or tort (including negligence or otherwise), arising in any way
+out of the use of this code or performance or use of the results of this code. By
+using this code, you agree to hold the author and any other party harmless from
+any and all liability and to use the code at your own risk.
+
+This code was written by GitHub user: budgettsfrog
+Contact: budgettsfrog@protonmail.com
+GitHub: https://github.com/warrenwoolseyiii
+*********************************************************************************/
+
 #ifndef USER_HOOKS_H
 #define USER_HOOKS_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
 
@@ -101,5 +125,29 @@ void user_soft_reboot( void );
  * @return int - 0 if the serial bootloader was run and succeeded, -1 if not
  */
 int user_serial_bootloader( void );
+
+/**
+ * @brief _putchar optional _purchar function that will enable the printf library.
+ * 
+ * @param character - character to print
+ */
+void _putchar( char character );
+
+
+/**
+ *  @brief block interrupts on your device. This function is declared here only. You
+ * have to write your custom implementation somewhere.
+ */
+void _block_interrupts();
+
+/**
+ * @brief unblock interrupts on your device. This function is declared here only.
+ * You have to write your custom implementation somewhere.
+ */
+void _unblock_interrupts();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* USER_HOOKS_H */

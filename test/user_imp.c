@@ -1,71 +1,71 @@
+#include <user_hooks.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdbool.h>
+#include <user_settings.h>
+#include "flash_sim.h"
 
-/*********************************************************************************
-DISCLAIMER:
-
-This code is protected under the MIT open source license. The code is provided
-"as is" without warranty of any kind, either express or implied, including but
-not limited to the implied warranties of merchantability, fitness for a particular
-purpose, or non-infringement. In no event shall the author or any other party be
-liable for any direct, indirect, incidental, special, exemplary, or consequential
-damages, however caused and on any theory of liability, whether in contract,
-strict liability, or tort (including negligence or otherwise), arising in any way
-out of the use of this code or performance or use of the results of this code. By
-using this code, you agree to hold the author and any other party harmless from
-any and all liability and to use the code at your own risk.
-
-This code was written by GitHub user: budgettsfrog
-Contact: budgettsfrog@protonmail.com
-GitHub: https://github.com/warrenwoolseyiii
-*********************************************************************************/
-
-#include "user_hooks.h"
+// Internal simulated flash memory
+uint8_t _internal_flash_sim_mem[FLASH_SIM_MEM_SIZE] = { 0xFF };
 
 // TODO: User must implement this function, see user_hooks.h for details.
 int user_read_internal_flash( uint32_t address, uint8_t *data, uint32_t length )
 {
-    return 0;
+    for( uint32_t i = 0; i < length; i++ ) {
+        data[i] = _internal_flash_sim_mem[( address + i ) % FLASH_SIM_MEM_SIZE];
+    }
+
+    return length;
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
 int user_write_internal_flash( uint32_t address, uint8_t *data, uint32_t length )
 {
-    return 0;
+    for( uint32_t i = 0; i < length; i++ ) {
+        _internal_flash_sim_mem[( address + i ) % FLASH_SIM_MEM_SIZE] &= data[i];
+    }
+
+    return length;
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
 int user_erase_internal_flash( uint32_t address, uint32_t length )
 {
-    return 0;
+    for( uint32_t i = 0; i < length; i++ ) {
+        _internal_flash_sim_mem[( address + i ) % FLASH_SIM_MEM_SIZE] = 0xFF;
+    }
+
+    return length;
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
 int user_get_internal_flash_page_size( void )
 {
-    return 0;
+    return 256;
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
 void user_select_ext_flash()
 {
-    // If your chip is not an SPI chip this function can be left empty.
+    _select();
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
 void user_deselect_ext_flash()
 {
-    // If your chip is not an SPI chip this function can be left empty.
+    _deselect();
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
 int user_write_ext_flash( uint8_t *data, uint16_t len )
 {
-    return -1;
+    return _write(data, len);
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
 int user_read_ext_flash( uint8_t *data, uint16_t len )
 {
-    return -1;
+    return _read(data, len);
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
@@ -81,7 +81,9 @@ void user_prep_for_application_jump( void )
 // TODO: User must implement this function, see user_hooks.h for details.
 int user_check_for_application( void )
 {
-    return -1;
+    uint32_t app_start = 0xFFFFFFFF;
+    user_read_internal_flash( APP_START_ADDR, (uint8_t *)&app_start, sizeof(app_start) );
+    return app_start == 0xFFFFFFFF ? -1 : 0;
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.
@@ -98,6 +100,7 @@ int user_serial_bootloader( void )
 // TODO: User must implement this function, see user_hooks.h for details.
 void _putchar( char character )
 {
+    printf( "%c", character );
 }
 
 // TODO: User must implement this function, see user_hooks.h for details.

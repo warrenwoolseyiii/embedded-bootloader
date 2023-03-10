@@ -45,3 +45,6 @@ The hex writer is prepackaged source code that automatically takes intel 16 hex 
 2. Place the src/deps/embedded-external-flash-memory/* files in your application.
 3. Implement the stubs for the flash memory dependencies (see that repo's README for more information).
 4. See the README in the src/app/ folder for details on implementation
+
+# developing from releases
+Releases package the source code for the bootloader and the hex writer program into tar.gz assets. You can follow the same steps in the `developing from source` section to setup your application. In the future there will be an example script that will download the latest release and extract the files. We use a script that does something simlar for the embedded-external-flash-memory file in the `utilities/scripts/dl_deps.sh`. 

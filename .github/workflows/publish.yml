@@ -20,7 +20,7 @@ jobs:
     - name: Release
       run: |
         version="$(. ./utilities/version/get_version.sh)"
-        gh release create "$version" bootloader_assets.tar.gz hex_writer_assets.tar.gz --title "$version" --generate-notes --repo https://github.com/warrenwoolseyiii/embedded-external-flash-memory --target develop
+        gh release create "$version" bootloader_assets.tar.gz hex_writer_assets.tar.gz --title "$version" --generate-notes --repo https://github.com/warrenwoolseyiii/embedded-bootloader --target develop
       shell: bash
       env:
         GH_TOKEN: ${{ github.token }}

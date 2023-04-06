@@ -1,2 +1,16 @@
-implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.o
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.d
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.elf
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.hex
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.lss
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.map
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.bin
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.eep
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/*.srec
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/Config/
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/Device_Startup/
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/examples/
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/hal/
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/hpl/
+implementations/samd20-optiboot-custom/samd20-optiboot-custom/Debug/hri/
 test/build

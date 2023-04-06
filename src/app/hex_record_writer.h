@@ -10,28 +10,28 @@ extern "C" {
 #include <emb_ext_flash.h>
 #include <user_settings.h>
 
-#define HEX_RECORD_WRITER_ERROR_NONE 0
-#define HEX_RECORD_WRITER_ERROR_INVALID_RECORD_TYPE -1
-#define HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH -2
-#define HEX_RECORD_WRITER_ERROR_INVALID_CHECKSUM -3
-#define HEX_RECORD_WRITER_ERROR_INVALID_FORMAT -4
-#define HEX_RECORD_WRITER_ERROR_NULL_PTR -5
+#define HEX_RECORD_WRITER_ERROR_NONE                              0
+#define HEX_RECORD_WRITER_ERROR_INVALID_RECORD_TYPE               -1
+#define HEX_RECORD_WRITER_ERROR_INVALID_RECORD_LENGTH             -2
+#define HEX_RECORD_WRITER_ERROR_INVALID_CHECKSUM                  -3
+#define HEX_RECORD_WRITER_ERROR_INVALID_FORMAT                    -4
+#define HEX_RECORD_WRITER_ERROR_NULL_PTR                          -5
 
-#define HEX_RECORD_WRITER_RECORD_TYPE_DATA 0
-#define HEX_RECORD_WRITER_RECORD_TYPE_EOF 1
-#define HEX_RECORD_WRITER_RECORD_TYPE_EXTENDED_SEGMENT_ADDRESS 2
-#define HEX_RECORD_WRITER_RECORD_TYPE_START_SEGMENT_ADDRESS 3
-#define HEX_RECORD_WRITER_RECORD_TYPE_EXTENDED_LINEAR_ADDRESS 4
-#define HEX_RECORD_WRITER_RECORD_TYPE_START_LINEAR_ADDRESS 5
+#define HEX_RECORD_WRITER_RECORD_TYPE_DATA                        0
+#define HEX_RECORD_WRITER_RECORD_TYPE_EOF                         1
+#define HEX_RECORD_WRITER_RECORD_TYPE_EXTENDED_SEGMENT_ADDRESS    2
+#define HEX_RECORD_WRITER_RECORD_TYPE_START_SEGMENT_ADDRESS       3
+#define HEX_RECORD_WRITER_RECORD_TYPE_EXTENDED_LINEAR_ADDRESS     4
+#define HEX_RECORD_WRITER_RECORD_TYPE_START_LINEAR_ADDRESS        5
 
 /**
  * @brief Intel HEX record type
  */
 typedef struct
 {
-    uint8_t  record_type, record_length, checksum;
-    uint16_t address;
-    uint8_t  data[256];
+   uint8_t  record_type, record_length, checksum;
+   uint16_t address;
+   uint8_t  data[256];
 } intel_hex_record_t;
 
 /**
@@ -39,7 +39,7 @@ typedef struct
  * @param str String containing the hex character
  * @return Byte value of the hex character
  */
-uint8_t hex_to_byte( char *str );
+uint8_t hex_to_byte(char *str);
 
 /**
  * @brief Parse a string containing an Intel HEX record
@@ -47,7 +47,7 @@ uint8_t hex_to_byte( char *str );
  * @param record Pointer to a structure to store the parsed record
  * @return 0 on success, negative error code on failure
  */
-int parse_string_hex_record( const char *str, intel_hex_record_t *record );
+int parse_string_hex_record(const char *str, intel_hex_record_t *record);
 
 /**
  * @brief Parse a byte stream containing an Intel HEX record
@@ -56,7 +56,7 @@ int parse_string_hex_record( const char *str, intel_hex_record_t *record );
  * @param record Pointer to a structure to store the parsed record
  * @return 0 on success, negative error code on failure
  */
-int parse_byte_stream_hex_record( const uint8_t *stream, int stream_len, intel_hex_record_t *record );
+int parse_byte_stream_hex_record(const uint8_t *stream, int stream_len, intel_hex_record_t *record);
 
 /**
  * @brief Calculate the checksum of an Intel HEX record
@@ -67,7 +67,7 @@ int parse_byte_stream_hex_record( const uint8_t *stream, int stream_len, intel_h
  * @param length Length of the data
  * @return Checksum
  */
-uint8_t calculate_checksum( uint8_t len, uint16_t addr, uint8_t type, uint8_t *data, uint8_t length );
+uint8_t calculate_checksum(uint8_t len, uint16_t addr, uint8_t type, uint8_t *data, uint8_t length);
 
 /**
  * @brief Write an Intel HEX record to flash
@@ -79,7 +79,7 @@ uint8_t calculate_checksum( uint8_t len, uint16_t addr, uint8_t type, uint8_t *d
  * @param is_string boolean indicating if the byte stream is a string or a byte stream
  * @return int, number of bytes written to flash memory
  */
-int write_hex_record_to_flash( emb_flash_intf_handle_t *intf, uint32_t flash_addr, uint8_t *byte_stream, int byte_stream_len, bool is_string );
+int write_hex_record_to_flash(emb_flash_intf_handle_t *intf, uint32_t flash_addr, uint8_t *byte_stream, int byte_stream_len, bool is_string);
 
 #ifdef __cplusplus
 }
